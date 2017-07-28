@@ -35,4 +35,20 @@
         android:layout_height="wrap_content"
         android:text="切换文字"/>
 
+    <TextView
+        android:id="@+id/tvAnimView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="这是显示动画的View"
+        android:textSize="28sp"
+        />
+
+
+    <TextView
+        android:id="@+id/tvSpannable"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:gravity="center_vertical"
+        />
+
 </LinearLayout>
