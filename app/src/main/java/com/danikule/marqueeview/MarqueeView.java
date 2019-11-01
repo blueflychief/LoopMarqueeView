@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 /**
@@ -16,16 +17,19 @@ import android.view.View;
  */
 
 public class MarqueeView extends View {
+    private static final String TAG = MarqueeView.class.getSimpleName();
     private Paint textPaint;
     private Rect textBound;
-    private String textString = "这是跑马灯在赛跑";
+    private String textString = "这是";
     private volatile boolean isPlaying = false;
     private int viewWidth;
     private int viewHeight;
-    private int currentOffset = 0;//当前所处的偏移量
     private int intervalOffset = 3;//每次移动的偏移量
-    private int intervalTime = 30;  //移动时间间隔，单位毫秒
-    private int intervalSpace = 60;//两个移动空间间隔
+    private int intervalTime = 16;  //移动时间间隔，单位毫秒
+    private int textSpace = 200;//两个移动空间间隔
+    private int currentOffset = textSpace;//当前所处的偏移量
+    private boolean awaysLoop = true;//不管字数多少，都滚动
+    private boolean textInCenter = true;//字数不足一行时文字居中
 
     public MarqueeView(Context context) {
         super(context);
@@ -54,11 +58,23 @@ public class MarqueeView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawText(textString, -textBound.left + currentOffset, -textBound.top, textPaint);
-        canvas.drawText(textString, -textBound.left + currentOffset + textBound.width() + intervalSpace, -textBound.top, textPaint);  //这是第二个
-//        canvas.drawText(textString, -textBound.left + currentOffset + (textBound.width() + intervalSpace) * 2, -textBound.top, textPaint);  //这是第三个
-        if (isPlaying) {
-            postDelayed(offsetRunnable, intervalTime);
+        int viewWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+        int textWidth = textBound.width();
+        Log.d(TAG, "onDraw,viewWidth: " + viewWidth + ",textWidth:" + textWidth + ",currentOffset:" + currentOffset);
+        boolean canLoop = textWidth > viewWidth || awaysLoop;
+        if (canLoop) {
+            canvas.drawText(textString, -textBound.left + currentOffset, -textBound.top, textPaint);
+            int count = viewWidth / (textWidth + textSpace) + 1;
+            for (int i = 0; i < count; i++) {
+                canvas.drawText(textString,
+                        -textBound.left + currentOffset + (textBound.width() + textSpace) * (1 + i),
+                        -textBound.top, textPaint);
+            }
+            if (isPlaying) {
+                postDelayed(offsetRunnable, intervalTime);
+            }
+        } else {
+            canvas.drawText(textString, textInCenter ? (viewWidth - textWidth) * 0.5f : 0, -textBound.top, textPaint);
         }
     }
 
@@ -66,35 +82,69 @@ public class MarqueeView extends View {
         @Override
         public void run() {
             currentOffset -= intervalOffset;
-            invalidate();
+            postInvalidate();
             if (currentOffset < -textBound.width()) {
-                currentOffset = (intervalSpace - intervalOffset);
+                currentOffset = (textSpace - intervalOffset);
             }
         }
     };
 
     public void setText(String text) {
+        setText(text, true);
+    }
+
+    public void setText(String text, boolean autoStart) {
+        stop();
         textString = text;
-        currentOffset = 0;
-        isPlaying = false;
+        currentOffset = textSpace;
+        isPlaying = autoStart;
         textPaint.getTextBounds(textString, 0, textString.length(), textBound);
-        invalidate();
+        if (autoStart) {
+            start();
+        } else {
+            postInvalidate();
+        }
     }
 
     public void start() {
         isPlaying = true;
-        invalidate();
+        postInvalidate();
+    }
+
+    public MarqueeView setTextInCenter(boolean textInCenter) {
+        this.textInCenter = textInCenter;
+        return this;
+    }
+
+    public MarqueeView setIntervalOffset(int intervalOffset) {
+        this.intervalOffset = intervalOffset;
+        return this;
+    }
+
+    public MarqueeView setIntervalTime(int intervalTime) {
+        this.intervalTime = intervalTime;
+        return this;
+    }
+
+    public MarqueeView setTextSpace(int textSpace) {
+        this.textSpace = textSpace;
+        return this;
+    }
+
+    public MarqueeView setAwaysLoop(boolean awaysLoop) {
+        this.awaysLoop = awaysLoop;
+        return this;
     }
 
     public void stop() {
         isPlaying = false;
-    }
-
-    public void release() {
-        isPlaying = false;
         if (offsetRunnable != null) {
             removeCallbacks(offsetRunnable);
         }
+    }
+
+    public void release() {
+        stop();
         offsetRunnable = null;
     }
 
@@ -139,7 +189,7 @@ public class MarqueeView extends View {
             textString = bundle.getString("textString");
             currentOffset = bundle.getInt("currentOffset");
             intervalOffset = bundle.getInt("intervalOffset");
-            intervalSpace = bundle.getInt("intervalSpace");
+            textSpace = bundle.getInt("textSpace");
             if (isPlaying) {
                 init();
                 start();
@@ -158,7 +208,7 @@ public class MarqueeView extends View {
         bundle.putString("textString", textString);
         bundle.putInt("currentOffset", currentOffset);
         bundle.putInt("intervalOffset", intervalOffset);
-        bundle.putInt("intervalSpace", intervalSpace);
+        bundle.putInt("textSpace", textSpace);
         stop();
         return bundle;
     }

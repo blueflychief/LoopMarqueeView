@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -16,8 +15,6 @@ import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -56,18 +53,18 @@ public class MainActivity extends AppCompatActivity {
         btChange.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mvMarquee.setText("这是替换的文字这是替换的文字");
-                Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_anim);
-                tvAnimView.startAnimation(animation);
-
-                new Thread() {
-                    @Override
-                    public void run() {
-                        long start = System.currentTimeMillis();
-                        compress(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + File.separator, "115.gif");
-                        Log.i(TAG, "run耗时: " + (System.currentTimeMillis() - start));
-                    }
-                }.start();
+                mvMarquee.setText("这是超长跑马灯啊啊啊啊啊啊");
+//                Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.scale_anim);
+//                tvAnimView.startAnimation(animation);
+//
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        long start = System.currentTimeMillis();
+//                        compress(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + File.separator, "115.gif");
+//                        Log.i(TAG, "run耗时: " + (System.currentTimeMillis() - start));
+//                    }
+//                }.start();
 
 
             }
